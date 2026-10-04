@@ -19,7 +19,14 @@
         </form>
         <p class="small" data-newsmsg aria-live="polite" style="margin-top:8px;color:#cdb47f"></p>
       </div>
-      <div><h4>Shop</h4><a href="{{ url('shop/men') }}">Men</a><a href="{{ url('shop/women') }}">Women</a><a href="{{ url('shop/accessories') }}">Accessories</a><a href="{{ url('shop/everyday') }}">Everyday</a><a href="{{ url('shoe-shine-service') }}">Shoe Shine Service</a></div>
+      <div>
+        <h4>Shop</h4>
+        @if (is_category_active('Men'))<a href="{{ url('shop/men') }}">Men</a>@endif
+        @if (is_category_active('Women'))<a href="{{ url('shop/women') }}">Women</a>@endif
+        @if (is_category_active('Accessories'))<a href="{{ url('shop/accessories') }}">Accessories</a>@endif
+        @if (is_category_active('Everyday'))<a href="{{ url('shop/everyday') }}">Everyday</a>@endif
+        @if (is_category_active('Service'))<a href="{{ url('shoe-shine-service') }}">Shoe Shine Service</a>@endif
+      </div>
       <div><h4>Craft</h4>@foreach (crafts() as $c)<a href="{{ url('craft/' . $c['slug']) }}">{{ $c['name'] }}</a>@endforeach</div>
       <div><h4>Bespoke</h4><a href="{{ url('bespoke/build') }}">Build Your Pair</a><a href="{{ url('bespoke/wedding') }}">Wedding</a><a href="{{ url('bespoke/one-of-one') }}">One of One</a><a href="{{ url('bespoke/designers') }}">Designers &amp; Collectors</a></div>
       <div><h4>Care &amp; Service</h4><a href="{{ url('care') }}">Care</a><a href="{{ url('restoration') }}">Restoration</a><a href="{{ url('size-guide') }}">Size Guide</a><a href="{{ url('shipping') }}">Shipping &amp; Duties</a><a href="{{ url('returns') }}">Returns &amp; Exchange</a><a href="{{ url('faq') }}">FAQ</a></div>

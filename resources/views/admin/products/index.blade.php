@@ -7,11 +7,17 @@
             <input type="text" name="search" class="form-control-custom" placeholder="Search product name, slug, silhouette..." value="{{ request('search') }}">
             <select name="category" class="form-select-custom" style="width:auto">
                 <option value="">All Categories</option>
-                <option value="Men" {{ request('category')==='Men'?'selected':'' }}>Men</option>
-                <option value="Women" {{ request('category')==='Women'?'selected':'' }}>Women</option>
-                <option value="Everyday" {{ request('category')==='Everyday'?'selected':'' }}>Everyday</option>
-                <option value="Accessories" {{ request('category')==='Accessories'?'selected':'' }}>Accessories</option>
-                <option value="Service" {{ request('category')==='Service'?'selected':'' }}>Service</option>
+                @if(isset($categories))
+                    @foreach($categories as $cat)
+                        <option value="{{ $cat->name }}" {{ request('category') === $cat->name ? 'selected' : '' }}>{{ $cat->name }}</option>
+                    @endforeach
+                @else
+                    <option value="Men" {{ request('category')==='Men'?'selected':'' }}>Men</option>
+                    <option value="Women" {{ request('category')==='Women'?'selected':'' }}>Women</option>
+                    <option value="Everyday" {{ request('category')==='Everyday'?'selected':'' }}>Everyday</option>
+                    <option value="Accessories" {{ request('category')==='Accessories'?'selected':'' }}>Accessories</option>
+                    <option value="Service" {{ request('category')==='Service'?'selected':'' }}>Service</option>
+                @endif
             </select>
             <button type="submit" class="btn-atelier btn-atelier-primary btn-atelier-sm">Filter</button>
             @if(request()->hasAny(['search', 'category', 'status']))

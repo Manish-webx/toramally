@@ -23,16 +23,34 @@
     <nav class="main" aria-label="Main">
       <div><a class="top" href="{{ url('shop') }}" aria-current="{{ $nav === 'shop' ? 'true' : 'false' }}">Shop</a>
         <div class="mega"><div class="wrap">
+          @if (is_category_active('Men'))
           <div><h4>Men</h4>
             <a href="{{ url('shop/men/classic') }}">Classic</a><a href="{{ url('shop/men/special-occasion') }}">Special Occasion</a>
             @foreach (['Belgian loafer', 'Penny loafer', 'Wholecut Oxford', 'Oxford', 'Adelaide Oxford', 'Derby', 'Mule', 'Peshawari'] as $s)
               <a href="{{ url('shop/men/' . Str::slug($s) . 's') }}">{{ $s }}s</a>
             @endforeach
           </div>
-          <div><h4>Women</h4><a href="{{ url('shop/women/heels') }}">Heels</a><a href="{{ url('shop/women/flats') }}">Flats</a><a href="{{ url('shop/women/mules') }}">Mules</a>
-            <h4 style="margin-top:24px">Everyday</h4><a href="{{ url('shop/everyday?craft=velvet') }}">Velvet</a><a href="{{ url('shop/everyday/slippers') }}">Slippers</a></div>
-          <div><h4>Accessories</h4><a href="{{ url('shop/accessories/belts') }}">Belts</a><a href="{{ url('shop/accessories/wallets') }}">Wallets</a><a href="{{ url('shop/accessories/collectibles') }}">Collectibles</a>
-            <h4 style="margin-top:24px">Services</h4><a href="{{ url('shoe-shine-service') }}">The Shoe Shine Service</a></div>
+          @endif
+          @if (is_category_active('Women') || is_category_active('Everyday'))
+          <div>
+            @if (is_category_active('Women'))
+              <h4>Women</h4><a href="{{ url('shop/women/heels') }}">Heels</a><a href="{{ url('shop/women/flats') }}">Flats</a><a href="{{ url('shop/women/mules') }}">Mules</a>
+            @endif
+            @if (is_category_active('Everyday'))
+              <h4 style="{{ is_category_active('Women') ? 'margin-top:24px' : '' }}">Everyday</h4><a href="{{ url('shop/everyday?craft=velvet') }}">Velvet</a><a href="{{ url('shop/everyday/slippers') }}">Slippers</a>
+            @endif
+          </div>
+          @endif
+          @if (is_category_active('Accessories') || is_category_active('Service'))
+          <div>
+            @if (is_category_active('Accessories'))
+              <h4>Accessories</h4><a href="{{ url('shop/accessories/belts') }}">Belts</a><a href="{{ url('shop/accessories/wallets') }}">Wallets</a><a href="{{ url('shop/accessories/collectibles') }}">Collectibles</a>
+            @endif
+            @if (is_category_active('Service'))
+              <h4 style="{{ is_category_active('Accessories') ? 'margin-top:24px' : '' }}">Services</h4><a href="{{ url('shoe-shine-service') }}">The Shoe Shine Service</a>
+            @endif
+          </div>
+          @endif
           <div><h4>Collections</h4>
             @foreach (editorial_collections() as $c)
               <a href="{{ url('shop?collection=' . $c['slug']) }}">{{ $c['name'] }}</a>
@@ -125,7 +143,21 @@
       @endif
     </div>
     <details><summary>Shop</summary>
-      <a href="{{ url('shop/men') }}">Men</a><a href="{{ url('shop/men/classic') }}">&nbsp;&nbsp;Classic</a><a href="{{ url('shop/men/special-occasion') }}">&nbsp;&nbsp;Special Occasion</a><a href="{{ url('shop/women') }}">Women</a><a href="{{ url('shop/accessories') }}">Accessories</a><a href="{{ url('shop/everyday') }}">Everyday</a><a href="{{ url('shoe-shine-service') }}">The Shoe Shine Service</a>
+      @if (is_category_active('Men'))
+        <a href="{{ url('shop/men') }}">Men</a><a href="{{ url('shop/men/classic') }}">&nbsp;&nbsp;Classic</a><a href="{{ url('shop/men/special-occasion') }}">&nbsp;&nbsp;Special Occasion</a>
+      @endif
+      @if (is_category_active('Women'))
+        <a href="{{ url('shop/women') }}">Women</a>
+      @endif
+      @if (is_category_active('Accessories'))
+        <a href="{{ url('shop/accessories') }}">Accessories</a>
+      @endif
+      @if (is_category_active('Everyday'))
+        <a href="{{ url('shop/everyday') }}">Everyday</a>
+      @endif
+      @if (is_category_active('Service'))
+        <a href="{{ url('shoe-shine-service') }}">The Shoe Shine Service</a>
+      @endif
     </details>
     <details><summary>Craft</summary>
       @foreach ($crafts as $c)

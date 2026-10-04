@@ -34,6 +34,15 @@ Route::prefix('admin')->group(function () {
         Route::get('/inventory', [AdminController::class, 'inventoryIndex'])->name('admin.inventory.index');
         Route::post('/inventory/update', [AdminController::class, 'inventoryUpdate'])->name('admin.inventory.update');
 
+        // Categories
+        Route::get('/categories', [AdminController::class, 'categoriesIndex'])->name('admin.categories.index');
+        Route::get('/categories/create', [AdminController::class, 'categoryCreate'])->name('admin.categories.create');
+        Route::post('/categories', [AdminController::class, 'categoryStore'])->name('admin.categories.store');
+        Route::get('/categories/{id}/edit', [AdminController::class, 'categoryEdit'])->name('admin.categories.edit');
+        Route::post('/categories/{id}', [AdminController::class, 'categoryUpdate'])->name('admin.categories.update');
+        Route::post('/categories/{id}/toggle', [AdminController::class, 'categoryToggle'])->name('admin.categories.toggle');
+        Route::post('/categories/{id}/delete', [AdminController::class, 'categoryDelete'])->name('admin.categories.delete');
+
         // Products & Silhouettes
         Route::get('/products', [AdminController::class, 'productsIndex'])->name('admin.products.index');
         Route::get('/products/create', [AdminController::class, 'productCreate'])->name('admin.products.create');

@@ -49,10 +49,14 @@
 @break
 
 @case('shop')
+  @php
+    $allShopTiles = [['Men', 'shop/men', 'loafer', 'Oxblood', 'miniature', 'peacock'], ['Women', 'shop/women', 'heel', 'Ivory', 'miniature', 'botanical'], ['Accessories', 'shop/accessories', 'belt', 'Tan', 'patina', null], ['Everyday', 'shop/everyday', 'slipper', 'Forest Green', 'velvet', null]];
+    $shopTiles = array_values(array_filter($allShopTiles, fn($item) => is_category_active($item[0])));
+  @endphp
   <section class="section"><div class="wrap">
     <div class="head"><h2 class="h2">{{ $b['title'] ?? 'Shop' }}</h2><a class="tlink" href="{{ url('shop') }}">All pairs</a></div>
-    <div class="grid g4">
-      @foreach ([['Men', 'shop/men', 'loafer', 'Oxblood', 'miniature', 'peacock'], ['Women', 'shop/women', 'heel', 'Ivory', 'miniature', 'botanical'], ['Accessories', 'shop/accessories', 'belt', 'Tan', 'patina', null], ['Everyday', 'shop/everyday', 'slipper', 'Forest Green', 'velvet', null]] as [$t, $h, $s, $c, $cr, $a])
+    <div class="grid g{{ count($shopTiles) >= 4 ? '4' : (count($shopTiles) === 3 ? '3' : '2') }}">
+      @foreach ($shopTiles as [$t, $h, $s, $c, $cr, $a])
         <a class="tile" href="{{ url($h) }}"><div class="img">{!! draw_slot(['shape' => $s, 'colour' => $c, 'craft' => $cr, 'art' => $a], $t) !!}</div><h3 class="h3">{{ $t }}</h3></a>
       @endforeach
     </div>
@@ -61,7 +65,7 @@
 
 @case('signature')
   <section class="section panel"><div class="wrap">
-    <div class="head"><div><h2 class="h2">{{ $b['title'] }}</h2><p style="margin-top:8px">{{ $b['text'] ?? '' }}</p></div><a class="tlink" href="{{ url('shop/men/classic') }}">Men, Classic</a></div>
+    <div class="head"><div><h2 class="h2">{{ $b['title'] }}</h2><p style="margin-top:8px">{{ $b['text'] ?? '' }}</p></div><a class="tlink" href="{{ is_category_active('Men') ? url('shop/men/classic') : url('shop') }}">{{ is_category_active('Men') ? 'Men, Classic' : 'Catalogue' }}</a></div>
     <div class="grid g3">
       @foreach ($featured as $p)
         @include('partials.product-card', ['p' => $p])

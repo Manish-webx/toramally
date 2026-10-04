@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\AdminUser;
+use App\Models\Category;
 use App\Models\Collection;
 use App\Models\Commission;
 use App\Models\Customer;
@@ -14,6 +15,7 @@ use App\Models\OrderItem;
 use App\Models\OrderStatusHistory;
 use App\Models\Product;
 use App\Models\ProductColour;
+use App\Models\ProductImage;
 use App\Models\ProductStock;
 use App\Models\Setting;
 use App\Models\Subscriber;
@@ -281,7 +283,9 @@ class AdminController extends Controller
         $womenSizes = ['UK 3', 'UK 4', 'UK 5', 'UK 6', 'UK 7', 'UK 8'];
         $beltSizes = ['80 cm', '85 cm', '90 cm', '95 cm', '100 cm', '105 cm', '110 cm'];
 
-        return view('admin.inventory.index', compact('products', 'standardSizes', 'womenSizes', 'beltSizes'));
+        $categories = Category::orderBy('sort')->orderBy('name')->get();
+
+        return view('admin.inventory.index', compact('products', 'standardSizes', 'womenSizes', 'beltSizes', 'categories'));
     }
 
     public function inventoryUpdate(Request $request)
@@ -312,6 +316,163 @@ class AdminController extends Controller
     }
 
     /* =========================================================================
+     * CATEGORIES MANAGEMENT
+     * ========================================================================= */
+
+    public function categoriesIndex(Request $request)
+    {
+        $query = Category::withCount('products')->orderBy('sort', 'asc')->orderBy('name', 'asc');
+
+        if ($request->filled('status')) {
+            $query->where('active', $request->status === 'active' ? 1 : 0);
+        }
+
+        if ($request->filled('search')) {
+            $s = trim($request->search);
+            $query->where(function ($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                    ->orWhere('slug', 'like', "%{$s}%")
+                    ->orWhere('description', 'like', "%{$s}%");
+            });
+        }
+
+        $categories = $query->paginate(20)->withQueryString();
+        return view('admin.categories.index', compact('categories'));
+    }
+
+    public function categoryCreate()
+    {
+        return view('admin.categories.form', [
+            'category' => new Category(['active' => true, 'sort' => 0]),
+            'isEdit' => false,
+        ]);
+    }
+
+    public function categoryStore(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:60',
+            'slug' => 'nullable|string|max:60|unique:categories,slug',
+            'description' => 'nullable|string|max:1000',
+            'sort' => 'nullable|integer',
+        ]);
+
+        $slug = $request->slug ? Str::slug($request->slug) : Str::slug($request->name);
+
+        if (Category::where('slug', $slug)->exists()) {
+            $slug .= '-' . time();
+        }
+
+        $category = Category::create([
+            'name' => trim($request->name),
+            'slug' => $slug,
+            'description' => $request->description,
+            'sort' => (int) ($request->sort ?? 0),
+            'active' => $request->has('active') ? 1 : 0,
+        ]);
+
+        ActivityLog::create([
+            'admin_id' => session('admin_user_id'),
+            'action' => 'create_category',
+            'entity' => 'categories',
+            'entity_id' => $category->id,
+            'details' => "Created category '{$category->name}' (slug: {$category->slug})",
+            'ip' => $request->ip(),
+        ]);
+
+        return redirect()->route('admin.categories.index')->with('success', "Category '{$category->name}' created successfully.");
+    }
+
+    public function categoryEdit($id)
+    {
+        $category = Category::withCount('products')->findOrFail($id);
+        return view('admin.categories.form', [
+            'category' => $category,
+            'isEdit' => true,
+        ]);
+    }
+
+    public function categoryUpdate(Request $request, $id)
+    {
+        $category = Category::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:60',
+            'slug' => "nullable|string|max:60|unique:categories,slug,{$id}",
+            'description' => 'nullable|string|max:1000',
+            'sort' => 'nullable|integer',
+        ]);
+
+        $oldName = $category->name;
+        $newName = trim($request->name);
+        $slug = $request->slug ? Str::slug($request->slug) : Str::slug($newName);
+
+        $category->update([
+            'name' => $newName,
+            'slug' => $slug,
+            'description' => $request->description,
+            'sort' => (int) ($request->sort ?? 0),
+            'active' => $request->has('active') ? 1 : 0,
+        ]);
+
+        // If category name updated, update matching products
+        if ($oldName !== $newName) {
+            Product::where('category', $oldName)->update(['category' => $newName]);
+        }
+
+        ActivityLog::create([
+            'admin_id' => session('admin_user_id'),
+            'action' => 'update_category',
+            'entity' => 'categories',
+            'entity_id' => $category->id,
+            'details' => "Updated category '{$category->name}' (slug: {$category->slug})",
+            'ip' => $request->ip(),
+        ]);
+
+        return redirect()->route('admin.categories.index')->with('success', "Category '{$category->name}' updated successfully.");
+    }
+
+    public function categoryToggle($id)
+    {
+        $category = Category::findOrFail($id);
+        $category->active = !$category->active;
+        $category->save();
+
+        ActivityLog::create([
+            'admin_id' => session('admin_user_id'),
+            'action' => 'toggle_category',
+            'entity' => 'categories',
+            'entity_id' => $category->id,
+            'details' => "Toggled category '{$category->name}' active state to " . ($category->active ? 'Active' : 'Inactive'),
+            'ip' => request()->ip(),
+        ]);
+
+        return back()->with('success', "Category '{$category->name}' status updated.");
+    }
+
+    public function categoryDelete($id)
+    {
+        $category = Category::withCount('products')->findOrFail($id);
+        if ($category->products_count > 0) {
+            return back()->with('error', "Cannot delete category '{$category->name}' because {$category->products_count} product(s) are assigned to it. Please reassign or remove the products first.");
+        }
+
+        $name = $category->name;
+        $category->delete();
+
+        ActivityLog::create([
+            'admin_id' => session('admin_user_id'),
+            'action' => 'delete_category',
+            'entity' => 'categories',
+            'entity_id' => $id,
+            'details' => "Deleted category '{$name}'",
+            'ip' => request()->ip(),
+        ]);
+
+        return redirect()->route('admin.categories.index')->with('success', "Category '{$name}' deleted successfully.");
+    }
+
+    /* =========================================================================
      * PRODUCTS MANAGEMENT
      * ========================================================================= */
 
@@ -337,15 +498,18 @@ class AdminController extends Controller
         }
 
         $products = $query->paginate(20)->withQueryString();
-        return view('admin.products.index', compact('products'));
+        $categories = Category::orderBy('sort')->orderBy('name')->get();
+        return view('admin.products.index', compact('products', 'categories'));
     }
 
     public function productCreate()
     {
         $crafts = Collection::where('type', 'craft')->orderBy('sort')->get();
+        $categories = Category::where('active', true)->orderBy('sort')->orderBy('name')->get();
         return view('admin.products.form', [
             'product' => new Product(),
             'crafts' => $crafts,
+            'categories' => $categories,
             'isEdit' => false,
         ]);
     }
@@ -371,7 +535,7 @@ class AdminController extends Controller
             'status' => 'required|string|in:Published,Draft,Archived',
         ]);
 
-        $data = $request->except(['_token', 'colours', 'initial_sizes', 'drawing_shape', 'drawing_art']);
+        $data = $request->except(['_token', 'colours', 'initial_sizes', 'drawing_shape', 'drawing_art', 'colour_names', 'colour_hexes', 'new_images', 'new_image_colours', 'new_image_kinds', 'new_image_alts', 'new_image_sorts']);
         $data['drawing_json'] = json_encode([
             'shape' => $request->drawing_shape ?: Str::slug($request->silhouette),
             'art' => $request->drawing_art ?: null,
@@ -381,17 +545,65 @@ class AdminController extends Controller
         $product = Product::create($data);
 
         // Handle Colours
+        $colourMap = [];
         if ($request->filled('colour_names')) {
             $names = $request->colour_names;
             $hexes = $request->colour_hexes ?? [];
             foreach ($names as $idx => $cName) {
-                if (trim($cName)) {
-                    ProductColour::create([
+                $trimmed = trim($cName);
+                if ($trimmed) {
+                    $col = ProductColour::create([
                         'product_id' => $product->id,
-                        'name' => trim($cName),
+                        'name' => $trimmed,
                         'hex' => $hexes[$idx] ?? '#000000',
                         'price_diff' => 0,
                         'sort' => $idx * 10,
+                    ]);
+                    $colourMap[$trimmed] = $col->id;
+                }
+            }
+        }
+
+        // Handle New Images Upload
+        if ($request->hasFile('new_images')) {
+            $files = $request->file('new_images');
+            $newColours = $request->input('new_image_colours', []);
+            $newKinds = $request->input('new_image_kinds', []);
+            $newAlts = $request->input('new_image_alts', []);
+            $newSorts = $request->input('new_image_sorts', []);
+
+            $destDir = public_path('uploads/products');
+            if (!file_exists($destDir)) {
+                mkdir($destDir, 0755, true);
+            }
+
+            foreach ($files as $idx => $file) {
+                if ($file && $file->isValid()) {
+                    $ext = strtolower($file->getClientOriginalExtension() ?: 'jpg');
+                    $filename = 'prod_' . $product->id . '_' . time() . '_' . uniqid() . '.' . $ext;
+                    $file->move($destDir, $filename);
+                    $relPath = 'uploads/products/' . $filename;
+
+                    $chosenCol = $newColours[$idx] ?? null;
+                    $colourId = null;
+                    if ($chosenCol !== null && $chosenCol !== '' && $chosenCol !== '*') {
+                        if (is_numeric($chosenCol)) {
+                            $colourId = (int)$chosenCol;
+                        } elseif (isset($colourMap[$chosenCol])) {
+                            $colourId = $colourMap[$chosenCol];
+                        } else {
+                            $colModel = ProductColour::where('product_id', $product->id)->where('name', $chosenCol)->first();
+                            $colourId = $colModel?->id;
+                        }
+                    }
+
+                    ProductImage::create([
+                        'product_id' => $product->id,
+                        'colour_id' => $colourId ?: null,
+                        'path' => $relPath,
+                        'alt' => !empty($newAlts[$idx]) ? trim($newAlts[$idx]) : ($product->name . ($chosenCol && $chosenCol !== '*' ? ' - ' . $chosenCol : '')),
+                        'kind' => $newKinds[$idx] ?? 'side',
+                        'sort' => (int)($newSorts[$idx] ?? ($idx * 10)),
                     ]);
                 }
             }
@@ -423,11 +635,13 @@ class AdminController extends Controller
 
     public function productEdit($id)
     {
-        $product = Product::with(['colours', 'stocks'])->findOrFail($id);
+        $product = Product::with(['colours', 'stocks', 'images'])->findOrFail($id);
         $crafts = Collection::where('type', 'craft')->orderBy('sort')->get();
+        $categories = Category::orderBy('sort')->orderBy('name')->get();
         return view('admin.products.form', [
             'product' => $product,
             'crafts' => $crafts,
+            'categories' => $categories,
             'isEdit' => true,
         ]);
     }
@@ -448,7 +662,12 @@ class AdminController extends Controller
             'status' => 'required|string|in:Published,Draft,Archived',
         ]);
 
-        $data = $request->except(['_token', 'colours', 'drawing_shape', 'drawing_art', 'colour_names', 'colour_hexes']);
+        $data = $request->except([
+            '_token', 'colours', 'drawing_shape', 'drawing_art',
+            'colour_names', 'colour_hexes', 'colour_ids',
+            'existing_image_ids', 'existing_image_colours', 'existing_image_kinds', 'existing_image_alts', 'existing_image_sorts',
+            'delete_image_ids', 'new_images', 'new_image_colours', 'new_image_kinds', 'new_image_alts', 'new_image_sorts'
+        ]);
         $data['drawing_json'] = json_encode([
             'shape' => $request->drawing_shape ?: Str::slug($request->silhouette),
             'art' => $request->drawing_art ?: null,
@@ -457,19 +676,138 @@ class AdminController extends Controller
 
         $product->update($data);
 
-        // Update colours if provided
+        // Synchronize colours
+        $colourMap = [];
         if ($request->has('colour_names')) {
-            ProductColour::where('product_id', $product->id)->delete();
-            $names = $request->colour_names;
-            $hexes = $request->colour_hexes ?? [];
-            foreach ($names as $idx => $cName) {
-                if (trim($cName)) {
-                    ProductColour::create([
+            $submittedNames = $request->colour_names;
+            $submittedHexes = $request->colour_hexes ?? [];
+            $submittedIds = $request->colour_ids ?? [];
+
+            $existingColours = ProductColour::where('product_id', $product->id)->get()->keyBy('id');
+            $keptIds = [];
+
+            foreach ($submittedNames as $idx => $cName) {
+                $trimmed = trim($cName);
+                if ($trimmed !== '') {
+                    $cid = $submittedIds[$idx] ?? null;
+                    if ($cid && isset($existingColours[$cid])) {
+                        $existingColours[$cid]->update([
+                            'name' => $trimmed,
+                            'hex' => $submittedHexes[$idx] ?? '#000000',
+                            'sort' => $idx * 10,
+                        ]);
+                        $keptIds[] = (int)$cid;
+                        $colourMap[$trimmed] = (int)$cid;
+                    } else {
+                        $newCol = ProductColour::create([
+                            'product_id' => $product->id,
+                            'name' => $trimmed,
+                            'hex' => $submittedHexes[$idx] ?? '#000000',
+                            'price_diff' => 0,
+                            'sort' => $idx * 10,
+                        ]);
+                        $keptIds[] = $newCol->id;
+                        $colourMap[$trimmed] = $newCol->id;
+                    }
+                }
+            }
+
+            $toDelete = $existingColours->keys()->diff($keptIds);
+            if ($toDelete->isNotEmpty()) {
+                ProductColour::whereIn('id', $toDelete)->delete();
+                ProductImage::where('product_id', $product->id)->whereIn('colour_id', $toDelete)->update(['colour_id' => null]);
+            }
+        }
+
+        // Handle Existing Images Deletion
+        if ($request->filled('delete_image_ids')) {
+            $delIds = (array)$request->delete_image_ids;
+            $imgsToDelete = ProductImage::where('product_id', $product->id)->whereIn('id', $delIds)->get();
+            foreach ($imgsToDelete as $dimg) {
+                $fullPath = public_path($dimg->path);
+                if (file_exists($fullPath)) {
+                    @unlink($fullPath);
+                }
+                $dimg->delete();
+            }
+        }
+
+        // Handle Existing Images Update
+        if ($request->filled('existing_image_ids')) {
+            $eIds = (array)$request->existing_image_ids;
+            $eColours = $request->input('existing_image_colours', []);
+            $eKinds = $request->input('existing_image_kinds', []);
+            $eAlts = $request->input('existing_image_alts', []);
+            $eSorts = $request->input('existing_image_sorts', []);
+            $deletedIds = (array)($request->delete_image_ids ?? []);
+
+            foreach ($eIds as $imgId) {
+                if (in_array($imgId, $deletedIds)) continue;
+
+                $img = ProductImage::where('product_id', $product->id)->find($imgId);
+                if ($img) {
+                    $rawCol = $eColours[$imgId] ?? null;
+                    $cid = null;
+                    if ($rawCol !== null && $rawCol !== '' && $rawCol !== '*') {
+                        if (is_numeric($rawCol)) {
+                            $cid = (int)$rawCol;
+                        } elseif (isset($colourMap[$rawCol])) {
+                            $cid = $colourMap[$rawCol];
+                        } else {
+                            $colModel = ProductColour::where('product_id', $product->id)->where('name', $rawCol)->first();
+                            $cid = $colModel?->id;
+                        }
+                    }
+                    $img->update([
+                        'colour_id' => $cid ?: null,
+                        'kind' => $eKinds[$imgId] ?? $img->kind,
+                        'alt' => $eAlts[$imgId] ?? $img->alt,
+                        'sort' => (int)($eSorts[$imgId] ?? $img->sort),
+                    ]);
+                }
+            }
+        }
+
+        // Handle New Images Upload
+        if ($request->hasFile('new_images')) {
+            $files = $request->file('new_images');
+            $newColours = $request->input('new_image_colours', []);
+            $newKinds = $request->input('new_image_kinds', []);
+            $newAlts = $request->input('new_image_alts', []);
+            $newSorts = $request->input('new_image_sorts', []);
+
+            $destDir = public_path('uploads/products');
+            if (!file_exists($destDir)) {
+                mkdir($destDir, 0755, true);
+            }
+
+            foreach ($files as $idx => $file) {
+                if ($file && $file->isValid()) {
+                    $ext = strtolower($file->getClientOriginalExtension() ?: 'jpg');
+                    $filename = 'prod_' . $product->id . '_' . time() . '_' . uniqid() . '.' . $ext;
+                    $file->move($destDir, $filename);
+                    $relPath = 'uploads/products/' . $filename;
+
+                    $chosenCol = $newColours[$idx] ?? null;
+                    $colourId = null;
+                    if ($chosenCol !== null && $chosenCol !== '' && $chosenCol !== '*') {
+                        if (is_numeric($chosenCol)) {
+                            $colourId = (int)$chosenCol;
+                        } elseif (isset($colourMap[$chosenCol])) {
+                            $colourId = $colourMap[$chosenCol];
+                        } else {
+                            $colModel = ProductColour::where('product_id', $product->id)->where('name', $chosenCol)->first();
+                            $colourId = $colModel?->id;
+                        }
+                    }
+
+                    ProductImage::create([
                         'product_id' => $product->id,
-                        'name' => trim($cName),
-                        'hex' => $hexes[$idx] ?? '#000000',
-                        'price_diff' => 0,
-                        'sort' => $idx * 10,
+                        'colour_id' => $colourId ?: null,
+                        'path' => $relPath,
+                        'alt' => !empty($newAlts[$idx]) ? trim($newAlts[$idx]) : ($product->name . ($chosenCol && $chosenCol !== '*' ? ' - ' . $chosenCol : '')),
+                        'kind' => $newKinds[$idx] ?? 'side',
+                        'sort' => (int)($newSorts[$idx] ?? ($idx * 10)),
                     ]);
                 }
             }

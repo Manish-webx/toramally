@@ -57,6 +57,18 @@ class DatabaseSeeder extends Seeder
             DB::table('settings')->updateOrInsert(['k' => $s['k']], ['v' => $s['v'], 'created_at' => now(), 'updated_at' => now()]);
         }
 
+        // Categories
+        $categories = [
+            ['name' => 'Men', 'slug' => 'men', 'description' => 'Handcrafted footwear and bespoke shoes for men.', 'sort' => 10, 'active' => 1],
+            ['name' => 'Women', 'slug' => 'women', 'description' => 'Fine heels, mules and crafted shoes for women.', 'sort' => 20, 'active' => 1],
+            ['name' => 'Everyday', 'slug' => 'everyday', 'description' => 'Handmade house slippers, loafers and essentials.', 'sort' => 30, 'active' => 1],
+            ['name' => 'Accessories', 'slug' => 'accessories', 'description' => 'Hand-patinated belts, wallets and atelier keepsakes.', 'sort' => 40, 'active' => 1],
+            ['name' => 'Service', 'slug' => 'service', 'description' => 'Shoe shine, polishing and restoration services.', 'sort' => 50, 'active' => 1],
+        ];
+        foreach ($categories as $cat) {
+            DB::table('categories')->updateOrInsert(['slug' => $cat['slug']], array_merge($cat, ['created_at' => now(), 'updated_at' => now()]));
+        }
+
         // Collections (Crafts & Collections)
         $collections = [
             ['id' => 1, 'slug' => 'velvet', 'type' => 'craft', 'name' => 'Velvet', 'scale_word' => 'Effortless', 'tagline' => 'Soft, everyday', 'description' => 'Velvet uppers for everyday ease, finished with a small leather patch, an all-over laser pattern, or a small hand-painted leather patch.', 'how_1' => 'Velvet is cut and lasted on a light, cemented construction.', 'how_2' => 'A calf patch is applied, lasered or painted by hand.', 'how_3' => 'A soft pair made for daily wear, not for occasion.', 'from_price' => 8000, 'lead_weeks' => '2 to 4', 'buy_mode_note' => 'Add to Bag', 'on_ladder' => 1, 'sort' => 10],

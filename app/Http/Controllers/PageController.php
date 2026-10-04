@@ -59,17 +59,29 @@ class PageController extends Controller
 
     public function shop(Request $request, ?string $catKey = null, ?string $sub = null, ?string $productSlug = null)
     {
-        $cats = ['men' => 'Men', 'women' => 'Women', 'accessories' => 'Accessories', 'everyday' => 'Everyday'];
-        
-        if ($catKey !== null && $catKey !== '' && !isset($cats[$catKey])) {
-            abort(404);
+        $cats = [];
+        try {
+            $cats = \App\Models\Category::where('active', true)->pluck('name', 'slug')->all();
+        } catch (\Throwable $e) {}
+
+        if (empty($cats) && \App\Models\Category::count() === 0) {
+            $cats = ['men' => 'Men', 'women' => 'Women', 'accessories' => 'Accessories', 'everyday' => 'Everyday'];
         }
-        $cat = $cats[$catKey] ?? null;
+        
+        if ($catKey !== null && $catKey !== '') {
+            $catKeySlug = strtolower(trim($catKey));
+            if (!isset($cats[$catKeySlug])) {
+                abort(404);
+            }
+            $cat = $cats[$catKeySlug];
+        } else {
+            $cat = null;
+        }
 
         // /shop/{cat}/{silhouette}/{product} → product page
         if ($productSlug !== null) {
             $p = product_by_slug($productSlug);
-            if (!$p || strtolower($p['category']) !== $catKey) {
+            if (!$p || \Illuminate\Support\Str::slug($p['category']) !== \Illuminate\Support\Str::slug($catKey)) {
                 abort(404);
             }
             $canonical = product_url($p);

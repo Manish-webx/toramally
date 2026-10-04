@@ -8,11 +8,11 @@
     <a href="{{ route('admin.products.index') }}" class="btn-atelier btn-atelier-secondary btn-atelier-sm">← Back to Products</a>
 </div>
 
-<form action="{{ $isEdit ? route('admin.products.update', $product->id) : route('admin.products.store') }}" method="POST">
+<form action="{{ $isEdit ? route('admin.products.update', $product->id) : route('admin.products.store') }}" method="POST" enctype="multipart/form-data">
     @csrf
 
     <div class="row g-4">
-        <!-- Left: Core Information -->
+        <!-- Left: Core Information & Imagery -->
         <div class="col-12 col-lg-8">
             <div class="card-custom">
                 <div class="card-title">Core Silhouette Details</div>
@@ -28,13 +28,29 @@
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label-custom">Category *</label>
+                        <div style="display:flex;justify-content:space-between;align-items:center">
+                            <label class="form-label-custom">Category *</label>
+                            <a href="{{ route('admin.categories.create') }}" target="_blank" style="font-size:11px;color:var(--brass-600);text-decoration:none" title="Create a new category in a new tab">+ New Category</a>
+                        </div>
                         <select name="category" class="form-select-custom" required>
-                            <option value="Men" {{ old('category', $product->category)==='Men'?'selected':'' }}>Men</option>
-                            <option value="Women" {{ old('category', $product->category)==='Women'?'selected':'' }}>Women</option>
-                            <option value="Everyday" {{ old('category', $product->category)==='Everyday'?'selected':'' }}>Everyday</option>
-                            <option value="Accessories" {{ old('category', $product->category)==='Accessories'?'selected':'' }}>Accessories</option>
-                            <option value="Service" {{ old('category', $product->category)==='Service'?'selected':'' }}>Service</option>
+                            @php
+                                $currentCat = old('category', $product->category);
+                                $hasCustom = $currentCat && !in_array($currentCat, $categories->pluck('name')->all());
+                            @endphp
+                            @if($hasCustom)
+                                <option value="{{ $currentCat }}" selected>{{ $currentCat }} (Custom)</option>
+                            @endif
+                            @forelse($categories as $cat)
+                                <option value="{{ $cat->name }}" {{ $currentCat === $cat->name ? 'selected' : '' }}>
+                                    {{ $cat->name }}
+                                </option>
+                            @empty
+                                <option value="Men" {{ $currentCat === 'Men' ? 'selected' : '' }}>Men</option>
+                                <option value="Women" {{ $currentCat === 'Women' ? 'selected' : '' }}>Women</option>
+                                <option value="Everyday" {{ $currentCat === 'Everyday' ? 'selected' : '' }}>Everyday</option>
+                                <option value="Accessories" {{ $currentCat === 'Accessories' ? 'selected' : '' }}>Accessories</option>
+                                <option value="Service" {{ $currentCat === 'Service' ? 'selected' : '' }}>Service</option>
+                            @endforelse
                         </select>
                     </div>
 
@@ -107,38 +123,153 @@
             <!-- Variant Colours -->
             <div class="card-custom">
                 <div class="card-title">Colour Palette Variants</div>
+                <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Define the available colourways for this silhouette. You can attach photos to each colour variant below.</p>
 
                 <div id="coloursList">
                     @if($isEdit && $product->colours->count() > 0)
                         @foreach($product->colours as $c)
                             <div class="row g-2 mb-2 align-items-center colour-row">
+                                <input type="hidden" name="colour_ids[]" value="{{ $c->id }}">
                                 <div class="col-md-6">
-                                    <input type="text" name="colour_names[]" class="form-control-custom" value="{{ $c->name }}" placeholder="Colour Name (e.g. Oxblood, Cognac)">
+                                    <input type="text" name="colour_names[]" class="form-control-custom colour-name-input" value="{{ $c->name }}" placeholder="Colour Name (e.g. Oxblood, Cognac)" oninput="syncColourDropdowns()">
                                 </div>
                                 <div class="col-md-4">
                                     <input type="color" name="colour_hexes[]" class="form-control-custom" value="{{ $c->hex ?: '#1f1c19' }}" style="height:38px;padding:2px">
                                 </div>
                                 <div class="col-md-2">
-                                    <button type="button" onclick="this.closest('.colour-row').remove()" class="btn-atelier btn-atelier-danger btn-atelier-sm">Remove</button>
+                                    <button type="button" onclick="this.closest('.colour-row').remove(); syncColourDropdowns();" class="btn-atelier btn-atelier-danger btn-atelier-sm">Remove</button>
                                 </div>
                             </div>
                         @endforeach
                     @else
                         <div class="row g-2 mb-2 align-items-center colour-row">
+                            <input type="hidden" name="colour_ids[]" value="">
                             <div class="col-md-6">
-                                <input type="text" name="colour_names[]" class="form-control-custom" placeholder="Colour Name (e.g. Cognac)" value="Cognac">
+                                <input type="text" name="colour_names[]" class="form-control-custom colour-name-input" placeholder="Colour Name (e.g. Cognac)" value="Cognac" oninput="syncColourDropdowns()">
                             </div>
                             <div class="col-md-4">
                                 <input type="color" name="colour_hexes[]" class="form-control-custom" value="#8f4b21" style="height:38px;padding:2px">
                             </div>
                             <div class="col-md-2">
-                                <button type="button" onclick="this.closest('.colour-row').remove()" class="btn-atelier btn-atelier-danger btn-atelier-sm">Remove</button>
+                                <button type="button" onclick="this.closest('.colour-row').remove(); syncColourDropdowns();" class="btn-atelier btn-atelier-danger btn-atelier-sm">Remove</button>
                             </div>
                         </div>
                     @endif
                 </div>
 
                 <button type="button" onclick="addColourRow()" class="btn-atelier btn-atelier-secondary btn-atelier-sm" style="margin-top:8px">+ Add Variant Colour</button>
+            </div>
+
+            <!-- Product Photography & Variant Images -->
+            <div class="card-custom">
+                <div class="card-title">Product Photography &amp; Variant Images</div>
+                <p style="font-size:12px;color:var(--muted);margin-bottom:16px">
+                    Upload photos for this product and assign each photo to a specific <strong>Colour Variant</strong> (e.g. Cognac, Dark Brown, Black) or <strong>General (All Variants)</strong>. When a customer selects a colour on the product page, the gallery automatically switches to that colour variant's photo.
+                </p>
+
+                @if($isEdit && $product->images && $product->images->count() > 0)
+                    <div style="margin-bottom:20px">
+                        <div style="font-weight:600;font-size:13px;color:var(--green-900);margin-bottom:10px">Current Photos ({{ $product->images->count() }})</div>
+                        <div class="table-responsive">
+                            <table class="custom-table" style="font-size:12.5px">
+                                <thead>
+                                    <tr>
+                                        <th style="width:70px">Photo</th>
+                                        <th>Variant Colour</th>
+                                        <th>View Angle</th>
+                                        <th>Alt Text</th>
+                                        <th style="width:60px">Sort</th>
+                                        <th style="text-align:right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($product->images as $img)
+                                        <tr style="vertical-align:middle">
+                                            <td>
+                                                <input type="hidden" name="existing_image_ids[]" value="{{ $img->id }}">
+                                                <img src="{{ asset($img->path) }}" alt="{{ $img->alt }}" style="width:54px;height:54px;object-fit:cover;border-radius:4px;border:1px solid var(--line)">
+                                            </td>
+                                            <td>
+                                                <select name="existing_image_colours[{{ $img->id }}]" class="form-select-custom existing-colour-select" style="font-size:12px;padding:4px 8px">
+                                                    <option value="*" {{ empty($img->colour_id) ? 'selected' : '' }}>General (All Colours)</option>
+                                                    @foreach($product->colours as $c)
+                                                        <option value="{{ $c->id }}" {{ $img->colour_id == $c->id ? 'selected' : '' }}>
+                                                            Variant: {{ $c->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <select name="existing_image_kinds[{{ $img->id }}]" class="form-select-custom" style="font-size:12px;padding:4px 8px">
+                                                    <option value="side" {{ in_array($img->kind, ['side', 'hero']) ? 'selected' : '' }}>Main Side View (Hero)</option>
+                                                    <option value="angle" {{ $img->kind === 'angle' ? 'selected' : '' }}>Angle Perspective</option>
+                                                    <option value="macro" {{ $img->kind === 'macro' ? 'selected' : '' }}>Macro Craft Detail</option>
+                                                    <option value="box" {{ $img->kind === 'box' ? 'selected' : '' }}>Presentation Box</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="text" name="existing_image_alts[{{ $img->id }}]" value="{{ $img->alt }}" class="form-control-custom" style="font-size:12px;padding:4px 8px" placeholder="Image description">
+                                            </td>
+                                            <td>
+                                                <input type="number" name="existing_image_sorts[{{ $img->id }}]" value="{{ $img->sort }}" class="form-control-custom" style="font-size:12px;padding:4px 8px;width:50px">
+                                            </td>
+                                            <td style="text-align:right">
+                                                <label style="display:inline-flex;align-items:center;gap:4px;color:#C5221F;font-size:12px;cursor:pointer">
+                                                    <input type="checkbox" name="delete_image_ids[]" value="{{ $img->id }}">
+                                                    Delete
+                                                </label>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Upload New Images -->
+                <div style="background:var(--ivory-50);border:1px dashed var(--brass-500);border-radius:6px;padding:16px;margin-top:10px">
+                    <div style="font-weight:600;font-size:13px;color:var(--green-900);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+                        <span>+ Upload New Images / Variant Photos</span>
+                        <button type="button" onclick="addNewImageRow()" class="btn-atelier btn-atelier-primary btn-atelier-sm">+ Add Image File</button>
+                    </div>
+
+                    <div id="newImagesList">
+                        <div class="new-image-row" style="background:#fff;border:1px solid var(--line);border-radius:6px;padding:12px;margin-bottom:10px">
+                            <div class="row g-2 align-items-center">
+                                <div class="col-md-4">
+                                    <label class="form-label-custom" style="font-size:11px">Select Photo File *</label>
+                                    <input type="file" name="new_images[]" class="form-control-custom image-file-input" accept="image/*" onchange="previewImageFile(this)">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label-custom" style="font-size:11px">Variant Colour</label>
+                                    <select name="new_image_colours[]" class="form-select-custom variant-colour-select" style="font-size:12px">
+                                        <option value="*">General (All Colours)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label-custom" style="font-size:11px">View Angle</label>
+                                    <select name="new_image_kinds[]" class="form-select-custom" style="font-size:12px">
+                                        <option value="side">Main Side (Hero)</option>
+                                        <option value="angle">Angle View</option>
+                                        <option value="macro">Macro Craft Detail</option>
+                                        <option value="box">Box View</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label-custom" style="font-size:11px">Alt Text</label>
+                                    <input type="text" name="new_image_alts[]" class="form-control-custom" placeholder="e.g. Noor in Cognac" style="font-size:12px">
+                                </div>
+                                <div class="col-md-1 text-end" style="padding-top:16px">
+                                    <button type="button" onclick="this.closest('.new-image-row').remove()" class="btn-atelier btn-atelier-danger btn-atelier-sm" title="Remove row">✕</button>
+                                </div>
+                                <div class="col-12 image-preview-box" style="display:none;margin-top:6px">
+                                    <img src="" style="height:60px;border-radius:4px;border:1px solid var(--line)" alt="Preview">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -189,7 +320,7 @@
                 </div>
 
                 <button type="submit" class="btn-atelier btn-atelier-primary full" style="width:100%;justify-content:center;padding:12px">
-                    {{ $isEdit ? 'Save Changes' : 'Create Silhouette' }}
+                    {{ $isEdit ? 'Save Changes & Photos' : 'Create Silhouette & Upload Photos' }}
                 </button>
             </div>
         </div>
@@ -203,18 +334,108 @@ function addColourRow() {
     const div = document.createElement('div');
     div.className = 'row g-2 mb-2 align-items-center colour-row';
     div.innerHTML = `
+        <input type="hidden" name="colour_ids[]" value="">
         <div class="col-md-6">
-            <input type="text" name="colour_names[]" class="form-control-custom" placeholder="Colour Name">
+            <input type="text" name="colour_names[]" class="form-control-custom colour-name-input" placeholder="Colour Name" oninput="syncColourDropdowns()">
         </div>
         <div class="col-md-4">
             <input type="color" name="colour_hexes[]" class="form-control-custom" value="#4b1719" style="height:38px;padding:2px">
         </div>
         <div class="col-md-2">
-            <button type="button" onclick="this.closest('.colour-row').remove()" class="btn-atelier btn-atelier-danger btn-atelier-sm">Remove</button>
+            <button type="button" onclick="this.closest('.colour-row').remove(); syncColourDropdowns();" class="btn-atelier btn-atelier-danger btn-atelier-sm">Remove</button>
         </div>
     `;
     list.appendChild(div);
+    syncColourDropdowns();
 }
+
+function getActiveColourNames() {
+    const inputs = document.querySelectorAll('.colour-name-input');
+    const names = [];
+    inputs.forEach(input => {
+        const val = input.value.trim();
+        if (val && !names.includes(val)) {
+            names.push(val);
+        }
+    });
+    return names;
+}
+
+function syncColourDropdowns() {
+    const names = getActiveColourNames();
+    const selects = document.querySelectorAll('.variant-colour-select');
+
+    selects.forEach(select => {
+        const currentVal = select.value;
+        let html = '<option value="*">General (All Colours)</option>';
+        names.forEach(name => {
+            html += `<option value="${name}" ${currentVal === name ? 'selected' : ''}>Variant: ${name}</option>`;
+        });
+        select.innerHTML = html;
+    });
+}
+
+function addNewImageRow() {
+    const list = document.getElementById('newImagesList');
+    const div = document.createElement('div');
+    div.className = 'new-image-row';
+    div.style = 'background:#fff;border:1px solid var(--line);border-radius:6px;padding:12px;margin-bottom:10px';
+    div.innerHTML = `
+        <div class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <label class="form-label-custom" style="font-size:11px">Select Photo File *</label>
+                <input type="file" name="new_images[]" class="form-control-custom image-file-input" accept="image/*" onchange="previewImageFile(this)">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label-custom" style="font-size:11px">Variant Colour</label>
+                <select name="new_image_colours[]" class="form-select-custom variant-colour-select" style="font-size:12px">
+                    <option value="*">General (All Colours)</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label-custom" style="font-size:11px">View Angle</label>
+                <select name="new_image_kinds[]" class="form-select-custom" style="font-size:12px">
+                    <option value="side">Main Side (Hero)</option>
+                    <option value="angle">Angle View</option>
+                    <option value="macro">Macro Craft Detail</option>
+                    <option value="box">Box View</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label-custom" style="font-size:11px">Alt Text</label>
+                <input type="text" name="new_image_alts[]" class="form-control-custom" placeholder="e.g. In Dark Brown" style="font-size:12px">
+            </div>
+            <div class="col-md-1 text-end" style="padding-top:16px">
+                <button type="button" onclick="this.closest('.new-image-row').remove()" class="btn-atelier btn-atelier-danger btn-atelier-sm" title="Remove row">✕</button>
+            </div>
+            <div class="col-12 image-preview-box" style="display:none;margin-top:6px">
+                <img src="" style="height:60px;border-radius:4px;border:1px solid var(--line)" alt="Preview">
+            </div>
+        </div>
+    `;
+    list.appendChild(div);
+    syncColourDropdowns();
+}
+
+function previewImageFile(input) {
+    const row = input.closest('.new-image-row');
+    const previewBox = row.querySelector('.image-preview-box');
+    const previewImg = previewBox.querySelector('img');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            previewBox.style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        previewBox.style.display = 'none';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    syncColourDropdowns();
+});
 </script>
 @endpush
 @endsection

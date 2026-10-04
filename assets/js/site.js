@@ -343,9 +343,10 @@ if(PD){
   const gal=$("[data-gal]"), sel=$("#sizeSel"), women=PD.women;
   applySizeSys(sel,women); $$("[data-sys]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.sys===SIZESYS));
   const visual=(v)=>{ const imgs=PD.images[colour]||PD.images["*"]||{};
-    if(v==="box") return `<div style="width:60%">${D.boxSVG()}</div>`;
+    if(v==="box") return imgs.box ? `<img src="${esc(imgs.box.src)}" alt="${esc(imgs.box.alt)}">` : `<div style="width:60%">${D.boxSVG()}</div>`;
     if(imgs[v]) return `<img src="${esc(imgs[v].src)}" alt="${esc(imgs[v].alt)}">`;
-    if(v==="macro") return D.macroSVG(PD.craft,colour);
+    if(v==="macro") return imgs.macro ? `<img src="${esc(imgs.macro.src)}" alt="${esc(imgs.macro.alt)}">` : D.macroSVG(PD.craft,colour);
+    if(imgs.side) return `<img src="${esc(imgs.side.src)}" alt="${esc(imgs.side.alt)}">`;
     return D.shoeSVG({...PD.drawing,colour,craft:PD.craft,alt:PD.name+" in "+colour}); };
   const draw=()=>{gal.innerHTML=`<div class="draw">${visual(view)}</div>`; gal.classList.remove("zoom")};
   $$("[data-view]").forEach(b=>b.onclick=()=>{view=b.dataset.view;$$("[data-view]").forEach(x=>x.setAttribute("aria-pressed",x===b));draw()});

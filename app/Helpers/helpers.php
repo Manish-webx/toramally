@@ -167,9 +167,22 @@ if (!function_exists('product_visual')) {
             $images = Product::find($pArr['id'])?->images->toArray() ?? [];
         }
 
+        $matchedColourIds = array_column(array_filter($colours, fn($c) => $c['name'] === $colour), 'id');
+
+        // Pass 1: Try finding specific variant image matching colour
         foreach ($images as $img) {
-            $colMatch = !$img['colour_id'] || ($colour && in_array($img['colour_id'], array_column(array_filter($colours, fn($c) => $c['name'] === $colour), 'id')));
-            if (($img['kind'] === $kind || $kind === 'any') && $colMatch) {
+            $colMatch = !empty($img['colour_id']) && in_array($img['colour_id'], $matchedColourIds);
+            $kindMatch = ($img['kind'] === $kind) || ($kind === 'any') || (in_array($kind, ['hero', 'side']) && in_array($img['kind'], ['hero', 'side', 'angle']));
+            if ($colMatch && $kindMatch) {
+                return '<img src="' . e(asset($img['path'])) . '" alt="' . e($img['alt'] ?: $alt) . '" loading="lazy" decoding="async" width="2000" height="2500">';
+            }
+        }
+
+        // Pass 2: Try finding general image (colour_id is null / 0)
+        foreach ($images as $img) {
+            $isGeneral = empty($img['colour_id']);
+            $kindMatch = ($img['kind'] === $kind) || ($kind === 'any') || (in_array($kind, ['hero', 'side']) && in_array($img['kind'], ['hero', 'side', 'angle']));
+            if ($isGeneral && $kindMatch) {
                 return '<img src="' . e(asset($img['path'])) . '" alt="' . e($img['alt'] ?: $alt) . '" loading="lazy" decoding="async" width="2000" height="2500">';
             }
         }
@@ -206,12 +219,48 @@ if (!function_exists('collection_by_slug')) {
     }
 }
 
+if (!function_exists('active_categories')) {
+    function active_categories(): array
+    {
+        try {
+            return \App\Models\Category::where('active', true)->orderBy('sort')->orderBy('name')->get()->toArray();
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+}
+
+if (!function_exists('is_category_active')) {
+    function is_category_active(string $catName): bool
+    {
+        try {
+            $cat = \App\Models\Category::where('name', $catName)
+                ->orWhere('slug', strtolower(trim($catName)))
+                ->first();
+            if ($cat) {
+                return (bool) $cat->active;
+            }
+        } catch (\Throwable $e) {}
+        return true;
+    }
+}
+
 if (!function_exists('published_products')) {
     function published_products(): array
     {
-        $products = Product::with(['craft', 'colours', 'images', 'stock', 'collections'])
-            ->whereIn('status', ['Published', 'Sold'])
-            ->orderBy('featured', 'desc')
+        $inactiveCats = [];
+        try {
+            $inactiveCats = \App\Models\Category::where('active', false)->pluck('name')->all();
+        } catch (\Throwable $e) {}
+
+        $query = Product::with(['craft', 'colours', 'images', 'stock', 'collections'])
+            ->whereIn('status', ['Published', 'Sold']);
+
+        if (!empty($inactiveCats)) {
+            $query->whereNotIn('category', $inactiveCats);
+        }
+
+        $products = $query->orderBy('featured', 'desc')
             ->orderBy('sort')
             ->orderBy('id')
             ->get();
@@ -236,10 +285,20 @@ if (!function_exists('published_products')) {
 if (!function_exists('product_by_slug')) {
     function product_by_slug(string $slug): ?array
     {
-        $p = Product::with(['craft', 'colours', 'images', 'stock', 'collections'])
+        $inactiveCats = [];
+        try {
+            $inactiveCats = \App\Models\Category::where('active', false)->pluck('name')->all();
+        } catch (\Throwable $e) {}
+
+        $query = Product::with(['craft', 'colours', 'images', 'stock', 'collections'])
             ->where('slug', $slug)
-            ->whereIn('status', ['Published', 'Sold'])
-            ->first();
+            ->whereIn('status', ['Published', 'Sold']);
+
+        if (!empty($inactiveCats)) {
+            $query->whereNotIn('category', $inactiveCats);
+        }
+
+        $p = $query->first();
 
         if (!$p) return null;
 
