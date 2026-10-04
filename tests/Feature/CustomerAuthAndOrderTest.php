@@ -165,4 +165,65 @@ class CustomerAuthAndOrderTest extends TestCase
             'unit_price_inr' => $price,
         ]);
     }
+
+    public function test_customer_can_update_personal_profile(): void
+    {
+        $customer = Customer::create([
+            'first_name' => 'Nitesh',
+            'last_name'  => 'Kushwaha',
+            'email'      => 'nitesh@example.com',
+            'phone'      => '9876543210',
+            'password'   => 'initialpass',
+            'status'     => 'active',
+        ]);
+
+        $this->actingAs($customer);
+
+        $response = $this->post('/account/profile', [
+            'first_name' => 'Nitesh Kumar',
+            'last_name'  => 'Kushwaha',
+            'phone'      => '9811223344',
+        ]);
+
+        $response->assertRedirect('/account');
+        $this->assertDatabaseHas('customers', [
+            'id'         => $customer->id,
+            'first_name' => 'Nitesh Kumar',
+            'phone'      => '9811223344',
+        ]);
+    }
+
+    public function test_customer_can_update_delivery_address(): void
+    {
+        $customer = Customer::create([
+            'first_name' => 'Nitesh',
+            'last_name'  => 'Kushwaha',
+            'email'      => 'nitesh2@example.com',
+            'phone'      => '9876543210',
+            'password'   => 'initialpass',
+            'status'     => 'active',
+        ]);
+
+        $this->actingAs($customer);
+
+        $response = $this->post('/account/address', [
+            'name'     => 'Nitesh Kushwaha',
+            'line1'    => 'Near R K Tent House Khansa Road',
+            'line2'    => 'Sector 10',
+            'city'     => 'Gurugram',
+            'state'    => 'Haryana',
+            'postcode' => '122001',
+            'country'  => 'India',
+            'phone'    => '9876543210',
+        ]);
+
+        $response->assertRedirect('/account');
+        $this->assertDatabaseHas('customer_addresses', [
+            'customer_id' => $customer->id,
+            'line1'       => 'Near R K Tent House Khansa Road',
+            'city'        => 'Gurugram',
+            'state'       => 'Haryana',
+            'postcode'    => '122001',
+        ]);
+    }
 }

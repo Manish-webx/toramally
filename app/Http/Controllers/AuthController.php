@@ -236,4 +236,106 @@ class AuthController extends Controller
             'logged_in' => false,
         ]);
     }
+
+    public function updateProfile(Request $request)
+    {
+        $customer = Auth::user();
+        if (!$customer) {
+            return redirect()->route('login');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'required|string|max:80',
+            'last_name'  => 'required|string|max:80',
+            'phone'      => 'required|string|max:40',
+            'password'   => 'nullable|string|min:6',
+        ]);
+
+        if ($validator->fails()) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['ok' => false, 'error' => $validator->errors()->first(), 'errors' => $validator->errors()], 422);
+            }
+            return back()->withErrors($validator)->withInput()->with('error_tab', 'profile');
+        }
+
+        $customer->first_name = trim($request->input('first_name'));
+        $customer->last_name = trim($request->input('last_name'));
+        $customer->phone = trim($request->input('phone'));
+
+        if ($request->filled('password')) {
+            $customer->password = $request->input('password');
+        }
+
+        $customer->save();
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Profile updated successfully.',
+                'customer' => [
+                    'id' => $customer->id,
+                    'name' => $customer->full_name,
+                    'email' => $customer->email,
+                    'phone' => $customer->phone,
+                ]
+            ]);
+        }
+
+        return redirect()->route('account')->with('success', 'Your personal information has been updated.');
+    }
+
+    public function updateAddress(Request $request)
+    {
+        $customer = Auth::user();
+        if (!$customer) {
+            return redirect()->route('login');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name'     => 'required|string|max:120',
+            'line1'    => 'required|string|max:190',
+            'line2'    => 'nullable|string|max:190',
+            'city'     => 'required|string|max:80',
+            'state'    => 'required|string|max:80',
+            'postcode' => 'required|string|max:20',
+            'country'  => 'nullable|string|max:60',
+            'phone'    => 'nullable|string|max:40',
+        ]);
+
+        if ($validator->fails()) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['ok' => false, 'error' => $validator->errors()->first(), 'errors' => $validator->errors()], 422);
+            }
+            return back()->withErrors($validator)->withInput()->with('error_tab', 'address');
+        }
+
+        $address = $customer->defaultAddress ?? $customer->addresses()->first();
+
+        if (!$address) {
+            $address = new CustomerAddress();
+            $address->customer_id = $customer->id;
+            $address->label = 'Home';
+            $address->is_default = true;
+        }
+
+        $address->name = trim($request->input('name'));
+        $address->line1 = trim($request->input('line1'));
+        $address->line2 = trim($request->input('line2', ''));
+        $address->city = trim($request->input('city'));
+        $address->state = trim($request->input('state'));
+        $address->postcode = trim($request->input('postcode'));
+        $address->country = trim($request->input('country', 'India'));
+        $address->phone = trim($request->input('phone', $customer->phone));
+        $address->save();
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Delivery address updated successfully.',
+                'address' => $address,
+            ]);
+        }
+
+        return redirect()->route('account')->with('success', 'Your delivery address has been updated.');
+    }
 }

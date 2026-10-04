@@ -21,4 +21,9 @@ class OrderStatusHistory extends Model
     {
         return $this->belongsTo(Order::class);
     }
+
+    public function admin(): BelongsTo
+    {
+        return $this->belongsTo(AdminUser::class, 'admin_id');
+    }
 }

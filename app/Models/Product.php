@@ -54,6 +54,11 @@ class Product extends Model
         return $this->hasMany(ProductStock::class);
     }
 
+    public function stocks(): HasMany
+    {
+        return $this->hasMany(ProductStock::class);
+    }
+
     public function getDrawingAttribute(): array
     {
         return json_decode($this->drawing_json ?: '{}', true) ?: [];

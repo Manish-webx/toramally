@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PageController;
@@ -10,6 +11,58 @@ use Illuminate\Support\Facades\Route;
 | Web Routes
 |--------------------------------------------------------------------------
 */
+
+// Admin Panel Routes
+Route::prefix('admin')->group(function () {
+    Route::get('/login', [AdminController::class, 'loginForm'])->name('admin.login');
+    Route::post('/login', [AdminController::class, 'loginSubmit'])->name('admin.login.post');
+    Route::post('/logout', [AdminController::class, 'logout'])->name('admin.logout');
+
+    Route::middleware('admin.auth')->group(function () {
+        Route::get('/', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+        Route::get('/dashboard', [AdminController::class, 'dashboard']);
+
+        // Orders Management
+        Route::get('/orders', [AdminController::class, 'ordersIndex'])->name('admin.orders.index');
+        Route::get('/orders/{id}', [AdminController::class, 'orderShow'])->name('admin.orders.show');
+        Route::post('/orders/{id}/status', [AdminController::class, 'orderUpdateStatus'])->name('admin.orders.status');
+        Route::post('/orders/{id}/payment', [AdminController::class, 'orderUpdatePayment'])->name('admin.orders.payment');
+        Route::post('/orders/{id}/notes', [AdminController::class, 'orderSaveNotes'])->name('admin.orders.notes');
+        Route::get('/orders/{id}/invoice', [AdminController::class, 'orderInvoice'])->name('admin.orders.invoice');
+
+        // Inventory Management
+        Route::get('/inventory', [AdminController::class, 'inventoryIndex'])->name('admin.inventory.index');
+        Route::post('/inventory/update', [AdminController::class, 'inventoryUpdate'])->name('admin.inventory.update');
+
+        // Products & Silhouettes
+        Route::get('/products', [AdminController::class, 'productsIndex'])->name('admin.products.index');
+        Route::get('/products/create', [AdminController::class, 'productCreate'])->name('admin.products.create');
+        Route::post('/products', [AdminController::class, 'productStore'])->name('admin.products.store');
+        Route::get('/products/{id}/edit', [AdminController::class, 'productEdit'])->name('admin.products.edit');
+        Route::post('/products/{id}', [AdminController::class, 'productUpdate'])->name('admin.products.update');
+        Route::post('/products/{id}/toggle', [AdminController::class, 'productToggleStatus'])->name('admin.products.toggle');
+
+        // Bespoke Commissions
+        Route::get('/commissions', [AdminController::class, 'commissionsIndex'])->name('admin.commissions.index');
+        Route::get('/commissions/{id}', [AdminController::class, 'commissionShow'])->name('admin.commissions.show');
+        Route::post('/commissions/{id}', [AdminController::class, 'commissionUpdate'])->name('admin.commissions.update');
+
+        // Customers & Patrons
+        Route::get('/customers', [AdminController::class, 'customersIndex'])->name('admin.customers.index');
+        Route::get('/customers/{id}', [AdminController::class, 'customerShow'])->name('admin.customers.show');
+
+        // Enquiries & Appointments
+        Route::get('/enquiries', [AdminController::class, 'enquiriesIndex'])->name('admin.enquiries.index');
+        Route::post('/enquiries/{id}/status', [AdminController::class, 'enquiryUpdateStatus'])->name('admin.enquiries.status');
+
+        // Subscribers
+        Route::get('/subscribers', [AdminController::class, 'subscribersIndex'])->name('admin.subscribers.index');
+
+        // Settings
+        Route::get('/settings', [AdminController::class, 'settingsIndex'])->name('admin.settings.index');
+        Route::post('/settings', [AdminController::class, 'settingsUpdate'])->name('admin.settings.update');
+    });
+});
 
 // Home
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -45,6 +98,8 @@ Route::get('/register', [AuthController::class, 'showRegister'])->name('register
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/account', [AuthController::class, 'account'])->name('account');
+Route::post('/account/profile', [AuthController::class, 'updateProfile'])->name('account.profile');
+Route::post('/account/address', [AuthController::class, 'updateAddress'])->name('account.address');
 
 // Simple info & service pages
 Route::get('/care', fn() => app(PageController::class)->simple('care'))->name('care');
@@ -87,3 +142,4 @@ Route::prefix('api')->group(function () {
 
 // Direct top-level single slug handler (e.g., /shoe-shine-service)
 Route::get('/{slug}', [PageController::class, 'directProduct'])->where('slug', '[a-zA-Z0-9\-_]+')->name('direct.product');
+

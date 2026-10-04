@@ -253,5 +253,18 @@ class DatabaseSeeder extends Seeder
         foreach ($shipping as [$scope, $name, $rate, $freeAbove, $eta, $sort]) {
             DB::table('shipping_rates')->updateOrInsert(['scope' => $scope, 'name' => $name], ['rate_inr' => $rate, 'free_above_inr' => $freeAbove, 'eta_text' => $eta, 'sort' => $sort, 'created_at' => now(), 'updated_at' => now()]);
         }
+
+        // Admin Users
+        DB::table('admin_users')->updateOrInsert(
+            ['email' => 'admin@toramally.com'],
+            [
+                'name' => 'Tōramally Atelier',
+                'password_hash' => password_hash('admin123', PASSWORD_BCRYPT),
+                'role' => 'admin',
+                'active' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
     }
 }
