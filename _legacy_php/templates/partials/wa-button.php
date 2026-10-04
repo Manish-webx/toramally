@@ -1,0 +1,2 @@
+<?php /* WhatsApp button. Vars: $label, $text (pre-filled message), $class */ ?>
+<a class="<?= e($class ?? 'btn ghost') ?> wa" href="<?= e(wa_link($text)) ?>" target="_blank" rel="noopener" data-track="whatsapp_click" data-ctx="<?= e($label) ?>"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M4 20l1.2-3.9A8 8 0 1 1 8 19.1L4 20z"/><path d="M9 9.5c.3 2 2.3 4.2 4.6 4.8l1.1-1.1 1.8.8-.4 1.6c-3.6.3-7.8-3.4-8-7.2l1.6-.4.8 1.8L9.4 9"/></svg><?= e($label) ?></a>

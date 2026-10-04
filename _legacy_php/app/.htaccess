@@ -1,0 +1,3 @@
+# Private folder: never served to visitors
+Require all denied
+Deny from all
