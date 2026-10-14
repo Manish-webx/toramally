@@ -364,7 +364,7 @@ class PageController extends Controller
                 ]
             ]);
         }
-        $sections = ['', 'story', 'lucknow', 'kolkata', 'workshop', 'artisans', 'philosophy', 'materials', 'press', 'stockists'];
+        $sections = ['', 'story', 'lucknow', 'kolkata', 'workshop', 'artisans', 'philosophy', 'green', 'materials', 'press', 'stockists'];
         if (!in_array($sub, $sections, true)) {
             abort(404);
         }

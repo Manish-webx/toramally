@@ -82,7 +82,7 @@
       <div><a class="top" href="{{ url('house') }}" aria-current="{{ $nav === 'house' ? 'true' : 'false' }}">The House</a>
         <div class="mega"><div class="wrap">
           <div><h4>Origins</h4><a href="{{ url('house/story') }}">Our Story</a><a href="{{ url('house/lucknow') }}">Lucknow</a><a href="{{ url('house/kolkata') }}">Kolkata</a></div>
-          <div><h4>The work</h4><a href="{{ url('house/workshop') }}">The Workshop</a><a href="{{ url('house/philosophy') }}">Philosophy</a><a href="{{ url('house/materials') }}">Materials</a></div>
+          <div><h4>The work</h4><a href="{{ url('house/artisans') }}">Artisans &amp; the Art</a><a href="{{ url('house/workshop') }}">The Workshop</a><a href="{{ url('house/green') }}">Tōramally Green</a><a href="{{ url('house/philosophy') }}">Philosophy</a><a href="{{ url('house/materials') }}">Materials</a></div>
           <div><h4>Proof</h4><a href="{{ url('house/worn-by') }}">Worn By</a><a href="{{ url('house/press') }}">Press &amp; Stockists</a><a href="{{ url('house/videos') }}">Videos</a></div>
           <div><h4>Visit</h4><a href="{{ url('visit') }}">Kolkata flagship</a><a href="{{ url('contact') }}">Contact</a></div>
           <div class="feat"><p class="serif-i" style="font-size:26px;line-height:32px;margin-bottom:12px">A workshop, not a factory.</p><a class="tlink" href="{{ url('house/workshop') }}">Inside the workshop</a></div>

@@ -136,6 +136,8 @@ Route::get('/returns', fn() => app(PageController::class)->policy('returns'))->n
 Route::get('/privacy', fn() => app(PageController::class)->policy('privacy'))->name('policy.privacy');
 Route::get('/terms', fn() => app(PageController::class)->policy('terms'))->name('policy.terms');
 Route::get('/cookies', fn() => app(PageController::class)->policy('cookies'))->name('policy.cookies');
+Route::get('/payments', fn() => app(PageController::class)->policy('payments'))->name('policy.payments');
+Route::get('/bespoke-terms', fn() => app(PageController::class)->policy('bespoke-terms'))->name('policy.bespoke-terms');
 
 // Search
 Route::get('/search', [PageController::class, 'search'])->name('search');

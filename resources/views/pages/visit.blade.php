@@ -22,8 +22,9 @@
         <a class="btn ghost" href="{{ setting('maps_url') }}" target="_blank" rel="noopener">Open in Maps</a>
         @include('partials.wa-button', ['label' => 'Message us', 'text' => 'Hello Tōramally,'])
       </div>
-      <h2 class="h3">Lucknow workshop</h2>
-      <p style="margin-top:8px">By appointment. The address is shared once your visit is confirmed.</p>
+      <h2 class="h3">Lucknow atelier</h2>
+      <p style="margin-top:8px">{{ setting('business_address', '595-AA/050-A, 2nd Floor, beside Olive Crown Hotel, Swaroop Chandra Khera, LDA Colony, Kanpur Road, Lucknow 226012') }}</p>
+      <p class="small muted">Visits and bespoke consultations are by appointment.</p>
       <h2 class="h3" style="margin-top:32px">Stockists</h2>
       <p style="margin-top:8px">Partner stores in Hyderabad and Bangalore. Online at Aashni + Co, Aza Fashions and Tata CLiQ Luxury.</p>
     </div>

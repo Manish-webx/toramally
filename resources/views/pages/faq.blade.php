@@ -3,14 +3,68 @@
 @section('content')
 @php
     $faq = [
-        ['Ordering', 'How do I order?', 'Choose your pair and size, add it to your bag and check out. For custom work, use the builder or book an appointment.'],
-        ['Made to order', 'Why does it take weeks?', 'Each pair is made individually in our workshop. Time is part of the process. Most pairs take 5 to 7 weeks; painted and tattooed 6 to 8; carved 10 to 14.'],
-        ['Sizing', 'I am between sizes.', 'Choose the larger, or send us your foot measurement on WhatsApp.'],
-        ['Care', 'Can patina be changed later?', 'Yes. A patina pair can be taken darker at the house.'],
-        ['Shipping', 'Do you ship abroad?', 'Yes, by insured courier. Duties are paid on delivery and we give an estimate before you confirm.'],
-        ['Returns', 'Can I exchange?', 'Ready-to-ship pairs, unworn and in the box, can be exchanged for size within 7 days. Personalised and made-to-order pairs are not returnable, and are remade if faulty.'],
-        ['Wedding', 'How early should we begin?', 'Ten to fourteen weeks before the date for custom artwork. Use the wedding date check.']
+        [
+            'Made to order',
+            'Are Tōramallies made to order?',
+            'Some pairs are held ready in our most-requested sizes; these ship within days. Everything else, and anything personalised, is made for you in 45–90 days.'
+        ],
+        [
+            'Sizing',
+            'How do I know my size?',
+            'See our Size & Fit Guide, or write to us with your usual size in another brand — we will advise for the last you have chosen.'
+        ],
+        [
+            'Returns & Exchanges',
+            'Can I return a pair?',
+            'Ready pairs, unworn, within 7 days of delivery. Made-to-order, personalised and bespoke pieces cannot be returned. See Returns, Exchanges & Cancellations.'
+        ],
+        [
+            'Handcrafted Character',
+            'Why does my pair look slightly different from the photograph?',
+            'Every finish is done by hand on natural leather, so tone and brushwork vary from pair to pair. That is what makes yours one of a kind.'
+        ],
+        [
+            'Shipping & Duties',
+            'Do you ship internationally?',
+            'Yes, by DHL Express to most countries. See Shipping & Delivery for times and duties.'
+        ],
+        [
+            'Atelier & Stores',
+            'Can I visit you?',
+            'Our flagship is in Bhowanipore, Kolkata, and our atelier is in Lucknow. We recommend booking an appointment for bespoke consultations.'
+        ],
+        [
+            'Weddings',
+            'Can you make wedding footwear?',
+            'Yes. Wedding pairs for the groom and bride are among our most-loved commissions. Allow at least three months before the date.'
+        ],
+        [
+            'Custom Artwork',
+            'Can you paint or tattoo a design I already have?',
+            'Yes. Upload a reference image when you order, or share it in your consultation. We will send a design for approval before we begin.'
+        ],
+        [
+            'Patrons',
+            'What are Patrons?',
+            'Clients who have collected several pairs receive a Patron Benefit on future purchases. See the Patrons page.'
+        ],
+        [
+            'Owners Register',
+            'I already own Tōramallies. Can I register them?',
+            'Yes — register your pairs in the Owners\' Register to join our Patron programme.'
+        ],
+        [
+            'Aftercare & Repairs',
+            'Can my shoes be resoled?',
+            'Hand-welted and hand-stitched Blake pairs can be resoled at our atelier; cemented pairs are assessed case by case. See Aftercare & Repairs.'
+        ],
+        [
+            'Support & Grievances',
+            'How do I raise a complaint?',
+            'Write to care@toramally.com or our Grievance Officer. You will receive a ticket number and an acknowledgement within 48 hours.'
+        ],
     ];
+
     $ld = [
         '@context' => 'https://schema.org',
         '@type' => 'FAQPage',
@@ -23,20 +77,25 @@
 @endphp
 
 <div class="wrap">
-  @include('partials.crumbs', ['items' => [['Home', ''], ['FAQ', null]]])
+  @include('partials.crumbs', ['items' => [['Home', ''], ['FAQs', null]]])
   <div style="margin-top:12px">
-    @include('partials.page-head', ['title' => 'Questions'])
+    @include('partials.page-head', [
+      'title' => 'Frequently Asked Questions',
+      'sub' => 'Everything you need to know about our making, sizing, delivery, care and bespoke commissions.'
+    ])
   </div>
   <div class="acc" style="max-width:860px;padding-bottom:96px">
-    @foreach ($faq as [$g, $q, $a])
-      <details>
+    @foreach ($faq as $i => [$g, $q, $a])
+      <details{!! $i === 0 ? ' open' : '' !!}>
         <summary>{{ $q }}</summary>
         <div class="in"><p class="label brass">{{ $g }}</p><p>{{ $a }}</p></div>
       </details>
     @endforeach
-    <div class="row" style="margin-top:32px">
-      <a class="tlink" href="{{ url('shipping') }}">Shipping policy</a>
-      <a class="tlink" href="{{ url('returns') }}">Return &amp; exchange policy</a>
+    <div class="row" style="margin-top:36px;gap:20px">
+      <a class="tlink" href="{{ url('shipping') }}">Shipping &amp; Delivery policy</a>
+      <a class="tlink" href="{{ url('returns') }}">Returns, Exchanges &amp; Cancellations policy</a>
+      <a class="tlink" href="{{ url('size-guide') }}">Size &amp; Fit Guide</a>
+      <a class="tlink" href="{{ url('contact') }}">Contact Client Care</a>
     </div>
   </div>
 </div>

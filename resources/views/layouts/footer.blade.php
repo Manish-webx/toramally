@@ -29,7 +29,7 @@
       </div>
       <div><h4>Craft</h4>@foreach (crafts() as $c)<a href="{{ url('craft/' . $c['slug']) }}">{{ $c['name'] }}</a>@endforeach</div>
       <div><h4>Bespoke</h4><a href="{{ url('bespoke/build') }}">Build Your Pair</a><a href="{{ url('bespoke/wedding') }}">Wedding</a><a href="{{ url('bespoke/one-of-one') }}">One of One</a><a href="{{ url('bespoke/designers') }}">Designers &amp; Collectors</a></div>
-      <div><h4>Care &amp; Service</h4><a href="{{ url('care') }}">Care</a><a href="{{ url('restoration') }}">Restoration</a><a href="{{ url('size-guide') }}">Size Guide</a><a href="{{ url('shipping') }}">Shipping &amp; Duties</a><a href="{{ url('returns') }}">Returns &amp; Exchange</a><a href="{{ url('faq') }}">FAQ</a></div>
+      <div><h4>Care &amp; Service</h4><a href="{{ url('care') }}">Care</a><a href="{{ url('restoration') }}">Restoration</a><a href="{{ url('size-guide') }}">Size Guide</a><a href="{{ url('shipping') }}">Shipping &amp; Delivery</a><a href="{{ url('returns') }}">Returns &amp; Cancellations</a><a href="{{ url('payments') }}">Payments &amp; Currencies</a><a href="{{ url('faq') }}">FAQ</a></div>
       <div><h4>Contact</h4>
         <a href="{{ setting('maps_url') }}" target="_blank" rel="noopener">Kolkata flagship, Bhowanipore</a>
         @if ($phone)<a href="tel:{{ preg_replace('/\s/', '', $phone) }}">{{ $phone }}</a>@endif
@@ -42,7 +42,7 @@
     </div>
     <div class="legal">
       <span>© {{ date('Y') }} Tōramally. Crafted in silence.</span>
-      <span><a href="{{ url('privacy') }}">Privacy</a><a href="{{ url('terms') }}">Terms</a><a href="{{ url('shipping') }}">Shipping</a><a href="{{ url('returns') }}">Returns &amp; Exchange</a><a href="{{ url('cookies') }}">Cookies</a>
+      <span><a href="{{ url('privacy') }}">Privacy</a><a href="{{ url('terms') }}">Terms</a><a href="{{ url('shipping') }}">Shipping</a><a href="{{ url('returns') }}">Returns</a><a href="{{ url('payments') }}">Payments</a><a href="{{ url('bespoke-terms') }}">Bespoke Terms</a><a href="{{ url('cookies') }}">Cookies</a>
       <label class="vh" for="curFoot">Currency</label><select id="curFoot" data-cur style="background:transparent;border:1px solid rgba(156,122,60,.6);color:inherit;height:32px;margin-left:4px">@foreach (array_keys(currencies()) as $c)<option{{ $c === current_currency() ? ' selected' : '' }}>{{ $c }}</option>@endforeach</select></span>
     </div>
   </div>

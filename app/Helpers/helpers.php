@@ -450,13 +450,17 @@ if (!function_exists('search_site')) {
         $pages = [
             ['Wedding', 'bespoke/wedding', 'wedding groom bride sherwani date'],
             ['Build your pair', 'bespoke/build', 'bespoke custom builder commission initials monogram personalisation colour'],
-            ['Size guide', 'size-guide', 'size fit measure'],
-            ['Care', 'care', 'care polish clean monsoon'],
-            ['Restoration', 'restoration', 'restore resole repair'],
-            ['Visit and appointments', 'visit', 'store kolkata lucknow appointment visit address'],
-            ['Shipping', 'shipping', 'shipping duties delivery'],
-            ['Returns and exchange', 'returns', 'returns exchange'],
-            ['Our story', 'house/story', 'story founder rahul lakme history']
+            ['Size & Fit Guide', 'size-guide', 'size fit measure conversion eu uk us'],
+            ['Care Guide', 'care', 'care polish clean cedar trees shoehorn monsoon'],
+            ['Aftercare & Repairs', 'restoration', 'restore resole repair patina touch up'],
+            ['Visit and appointments', 'visit', 'store kolkata lucknow appointment visit address flagship'],
+            ['Shipping & Delivery', 'shipping', 'shipping duties delivery international dhl express'],
+            ['Returns, Exchanges & Cancellations', 'returns', 'returns exchange cancellation refund guarantee'],
+            ['Payments & Currencies', 'payments', 'payment currency cards upi netbanking gbp usd inr'],
+            ['Bespoke & Made-to-Order Terms', 'bespoke-terms', 'bespoke terms commission advance trial fitting pattern'],
+            ['Artisans & the Art', 'house/artisans', 'artisans craft 300 processes handmade workshop'],
+            ['Tōramally Green', 'house/green', 'green sustainable tyres denim vulcanisation rehman rahul'],
+            ['The House', 'house', 'house luxury metropolitan early 1900s connoisseur'],
         ];
         foreach ($pages as [$title, $path, $k]) {
             if ($match($norm($title . ' ' . $k))) {

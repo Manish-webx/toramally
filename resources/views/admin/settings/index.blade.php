@@ -27,6 +27,11 @@
                 </div>
 
                 <div class="mb-3">
+                    <label class="form-label-custom">Operating Hours</label>
+                    <input type="text" name="hours" class="form-control-custom" value="{{ $settings['hours'] ?? '' }}" placeholder="Monday to Saturday, 11:00–19:00 IST">
+                </div>
+
+                <div class="mb-3">
                     <label class="form-label-custom">Orders Alert Email</label>
                     <input type="email" name="orders_alert_email" class="form-control-custom" value="{{ $settings['orders_alert_email'] ?? '' }}" placeholder="orders@toramally.com">
                 </div>
@@ -62,9 +67,20 @@
             <div class="card-custom">
                 <div class="card-title">Business &amp; Invoicing Details</div>
 
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label-custom">Registered Business Name</label>
+                        <input type="text" name="business_name" class="form-control-custom" value="{{ $settings['business_name'] ?? 'House of Tōramally' }}">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label-custom">Proprietor</label>
+                        <input type="text" name="proprietor" class="form-control-custom" value="{{ $settings['proprietor'] ?? 'Rahul Shastri' }}">
+                    </div>
+                </div>
+
                 <div class="mb-3">
-                    <label class="form-label-custom">Registered Business Name</label>
-                    <input type="text" name="business_name" class="form-control-custom" value="{{ $settings['business_name'] ?? 'House of Tōramally' }}">
+                    <label class="form-label-custom">Grievance Officer Email</label>
+                    <input type="email" name="grievance_email" class="form-control-custom" value="{{ $settings['grievance_email'] ?? 'grievance@toramally.com' }}">
                 </div>
 
                 <div class="mb-3">
