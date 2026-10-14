@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CcavenueController;
 use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
@@ -119,6 +120,15 @@ Route::get('/visit', fn() => app(PageController::class)->simple('visit'))->name(
 Route::get('/appointments', fn() => app(PageController::class)->simple('visit'))->name('appointments');
 Route::get('/contact', fn() => app(PageController::class)->simple('contact'))->name('contact');
 Route::get('/received', fn() => app(PageController::class)->simple('received'))->name('received');
+
+// CCAvenue Payment Integration Routes
+Route::prefix('ccavenue')->group(function () {
+    Route::get('/pay/{orderNo}', [CcavenueController::class, 'pay'])->name('ccavenue.pay');
+    Route::match(['GET', 'POST'], '/mock-gateway', [CcavenueController::class, 'mockGateway'])->name('ccavenue.mock');
+    Route::post('/mock-process', [CcavenueController::class, 'mockProcess'])->name('ccavenue.mock.process');
+    Route::post('/response', [CcavenueController::class, 'response'])->name('ccavenue.response');
+    Route::post('/cancel', [CcavenueController::class, 'cancel'])->name('ccavenue.cancel');
+});
 
 // Policies
 Route::get('/shipping', fn() => app(PageController::class)->policy('shipping'))->name('policy.shipping');

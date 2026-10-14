@@ -212,6 +212,33 @@
             </form>
         </div>
 
+        <!-- Payment Transactions Log -->
+        @if($order->payments && $order->payments->count())
+            <div class="card-custom">
+                <div class="card-title">Payment Gateway Transactions</div>
+                @foreach($order->payments as $pmt)
+                    <div style="background:var(--ivory-50);border:1px solid var(--line);border-radius:6px;padding:12px;margin-bottom:10px;font-size:12.5px">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                            <span class="pill {{ $pmt->verified ? 'pill-paid' : 'pill-unpaid' }}">
+                                {{ ucfirst($pmt->status ?: ($pmt->verified ? 'Captured' : 'Pending')) }}
+                            </span>
+                            <strong>₹{{ number_format($pmt->amount) }}</strong>
+                        </div>
+                        <div style="color:var(--muted);font-size:11.5px">
+                            <div><strong>Gateway:</strong> {{ strtoupper($pmt->gateway_code) }}</div>
+                            @if($pmt->gateway_ref)
+                                <div><strong>Tracking ID:</strong> <code>{{ $pmt->gateway_ref }}</code></div>
+                            @endif
+                            @if($pmt->gateway_payment_id)
+                                <div><strong>Bank Ref:</strong> <code>{{ $pmt->gateway_payment_id }}</code></div>
+                            @endif
+                            <div><strong>Date:</strong> {{ $pmt->created_at->format('d M Y, h:i A') }}</div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
         <!-- Internal Workshop Notes -->
         <div class="card-custom">
             <div class="card-title">Atelier Internal Notes</div>

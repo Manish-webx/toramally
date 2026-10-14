@@ -102,6 +102,42 @@
             </div>
 
             <div class="card-custom">
+                <div class="card-title">CCAvenue Payment Gateway</div>
+
+                <div class="mb-3">
+                    <label class="form-label-custom">Environment Mode</label>
+                    <select name="ccavenue_mode" class="form-select-custom">
+                        <option value="mock" {{ ($settings['ccavenue_mode'] ?? '') === 'mock' || empty($settings['ccavenue_mode']) ? 'selected' : '' }}>Local Sandbox Simulator (Instant Mock Testing)</option>
+                        <option value="test" {{ ($settings['ccavenue_mode'] ?? '') === 'test' ? 'selected' : '' }}>Sandbox / Test Mode (test.ccavenue.com)</option>
+                        <option value="live" {{ ($settings['ccavenue_mode'] ?? '') === 'live' ? 'selected' : '' }}>Production / Live Mode (secure.ccavenue.com)</option>
+                    </select>
+                    <div style="font-size:11.5px;color:var(--muted);margin-top:3px">Choose Sandbox for testing before switching to Live.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label-custom">Merchant ID</label>
+                    <input type="text" name="ccavenue_merchant_id" class="form-control-custom" value="{{ $settings['ccavenue_merchant_id'] ?? '' }}" placeholder="e.g. 1234567">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label-custom">Access Code</label>
+                    <input type="text" name="ccavenue_access_code" class="form-control-custom" value="{{ $settings['ccavenue_access_code'] ?? '' }}" placeholder="e.g. AVXXXX123456">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label-custom">Working Key (Encryption Key)</label>
+                    <input type="password" name="ccavenue_working_key" class="form-control-custom" value="{{ $settings['ccavenue_working_key'] ?? '' }}" placeholder="32-character encryption key">
+                    <div style="font-size:11.5px;color:var(--muted);margin-top:3px">From CCAvenue Dashboard &rarr; Settings &rarr; API Keys.</div>
+                </div>
+
+                <div class="p-3 mb-2" style="background:var(--ivory-100,#eee9de);border-radius:4px;font-size:12px;color:var(--ink-700)">
+                    <strong>Callback URLs for CCAvenue Dashboard:</strong><br>
+                    • Redirect URL: <code>{{ route('ccavenue.response') }}</code><br>
+                    • Cancel URL: <code>{{ route('ccavenue.cancel') }}</code>
+                </div>
+            </div>
+
+            <div class="card-custom">
                 <div class="card-title">Analytics &amp; SEO</div>
 
                 <div class="row g-2 mb-3">

@@ -291,8 +291,9 @@ class ApiController extends Controller
             'total_inr'        => $totalInr,
             'total_charged'    => $totalInr,
             'gift_note'        => $gift ?: null,
-            'status'           => 'Received',
-            'payment_status'   => 'Pending Confirmation',
+            'status'           => 'Pending Payment',
+            'payment_status'   => 'Unpaid',
+            'gateway_code'     => 'ccavenue',
             'access_token'     => Str::random(32),
         ]);
 
@@ -303,9 +304,9 @@ class ApiController extends Controller
 
         OrderStatusHistory::create([
             'order_id'          => $order->id,
-            'status'            => 'Received',
-            'note'              => 'Order placed online by customer.',
-            'customer_notified' => true,
+            'status'            => 'Pending Payment',
+            'note'              => 'Order initiated online. Redirecting patron to CCAvenue secure payment.',
+            'customer_notified' => false,
         ]);
 
         // Also record enquiry for notifications
@@ -331,6 +332,8 @@ class ApiController extends Controller
             'ip'           => $ip,
         ]);
 
+        $paymentUrl = route('ccavenue.pay', ['orderNo' => $orderNo]);
+
         return response()->json([
             'ok'               => true,
             'order_no'         => $orderNo,
@@ -339,8 +342,9 @@ class ApiController extends Controller
                 'name'  => $customer->full_name,
                 'email' => $customer->email,
             ],
-            'message'          => "Thank you {$customer->first_name}. Your order request ({$orderNo}) has been placed. A member of the House will confirm and send a secure invoice.",
-            'redirect'         => route('received') . '?order=' . urlencode($orderNo)
+            'message'          => "Order {$orderNo} registered. Transferring to CCAvenue payment gateway...",
+            'redirect'         => $paymentUrl,
+            'payment_url'      => $paymentUrl,
         ]);
     }
 

@@ -178,11 +178,11 @@ function renderBag(){
       <div class="small muted">${esc(c.email)}${c.phone ? ' · ' + esc(c.phone) : ''}</div>
       ${addr ? `<div class="small muted" style="margin-top:6px;border-top:1px dashed var(--line);padding-top:6px"><strong>Delivery location:</strong> ${esc(addr.line1)}, ${esc(addr.city)} - ${esc(addr.postcode)}</div>` : ''}
     </div>
-    <button class="btn full" data-checkout>Confirm &amp; Place Order Request</button>`;
+    <button class="btn full" data-checkout>Pay Now via CCAvenue</button>`;
   } else {
     authHTML = `<div style="background:var(--ivory-100,#eee9de);padding:14px;border-radius:4px;margin:14px 0 16px;border:1px solid var(--line)">
       <div style="font-family:var(--serif);font-size:18px;margin-bottom:4px">Account Required to Order</div>
-      <p class="small muted" style="margin:0 0 12px">Please create an account with your contact and delivery location details to order handcrafted pairs.</p>
+      <p class="small muted" style="margin:0 0 12px">Please create an account with your contact and delivery location details to proceed to secure payment.</p>
       
       <div class="row" style="gap:8px;margin-bottom:14px">
         <button type="button" class="btn small ${bagAuthMode==='register'?'':'ghost'}" data-authmode="register" style="flex:1;text-align:center">Create Account</button>
@@ -207,13 +207,13 @@ function renderBag(){
             <label class="field"><span>Pincode *</span><input data-bpostcode autocomplete="postal-code" placeholder="Pincode"><div class="err">Pincode required</div></label>
             <label class="field"><span>Country *</span><input data-bcountry value="India"><div class="err">Country required</div></label>
           </div>
-          <button class="btn full" data-checkout style="margin-top:6px">Create Account &amp; Order</button>
+          <button class="btn full" data-checkout style="margin-top:6px">Create Account &amp; Pay Now</button>
         </div>
       ` : `
         <div style="display:flex;flex-direction:column;gap:10px">
           <label class="field"><span>Email Address *</span><input type="email" data-lemail autocomplete="email" placeholder="name@domain.com"><div class="err">Email required</div></label>
           <label class="field"><span>Password *</span><input type="password" data-lpass autocomplete="current-password" placeholder="••••••••"><div class="err">Password required</div></label>
-          <button class="btn full" data-login-checkout style="margin-top:6px">Sign In &amp; Order</button>
+          <button class="btn full" data-login-checkout style="margin-top:6px">Sign In &amp; Pay Now</button>
         </div>
       `}
     </div>`;
@@ -227,7 +227,7 @@ function renderBag(){
    +`<div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)">
        <div class="row" style="justify-content:space-between"><span class="label">Subtotal</span><span class="price">${moneyHTML(total)}</span></div>
        ${CUR!=="INR"?`<p class="small muted" style="margin:8px 0 0">International orders: duties are paid on delivery. We will send an estimate with your confirmation.</p>`:""}
-       <p class="small muted" style="margin:8px 0 6px">The house personally crafts each pair and confirms your order with a bespoke invoice.</p>
+       <p class="small muted" style="margin:8px 0 6px">Secure online payment via CCAvenue (Cards, UPI, NetBanking, Wallets &amp; EMI).</p>
        ${authHTML}
      </div>`;
 
