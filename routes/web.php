@@ -126,8 +126,8 @@ Route::prefix('ccavenue')->group(function () {
     Route::get('/pay/{orderNo}', [CcavenueController::class, 'pay'])->name('ccavenue.pay');
     Route::match(['GET', 'POST'], '/mock-gateway', [CcavenueController::class, 'mockGateway'])->name('ccavenue.mock');
     Route::post('/mock-process', [CcavenueController::class, 'mockProcess'])->name('ccavenue.mock.process');
-    Route::post('/response', [CcavenueController::class, 'response'])->name('ccavenue.response');
-    Route::post('/cancel', [CcavenueController::class, 'cancel'])->name('ccavenue.cancel');
+    Route::match(['GET', 'POST'], '/response', [CcavenueController::class, 'response'])->name('ccavenue.response');
+    Route::match(['GET', 'POST'], '/cancel', [CcavenueController::class, 'cancel'])->name('ccavenue.cancel');
 });
 
 // Policies
