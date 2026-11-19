@@ -276,10 +276,9 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Tōramally Atelier',
                 'password_hash' => password_hash('admin123', PASSWORD_BCRYPT),
-                'role' => 'admin',
+                'role' => 'owner',
                 'active' => 1,
                 'created_at' => now(),
-                'updated_at' => now(),
             ]
         );
     }

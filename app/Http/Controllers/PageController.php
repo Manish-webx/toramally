@@ -60,11 +60,15 @@ class PageController extends Controller
     public function shop(Request $request, ?string $catKey = null, ?string $sub = null, ?string $productSlug = null)
     {
         $cats = [];
+        $catCount = 0;
         try {
             $cats = \App\Models\Category::where('active', true)->pluck('name', 'slug')->all();
-        } catch (\Throwable $e) {}
+            $catCount = \App\Models\Category::count();
+        } catch (\Throwable $e) {
+            // categories table missing (e.g. live DB imported without migrations) - use defaults
+        }
 
-        if (empty($cats) && \App\Models\Category::count() === 0) {
+        if (empty($cats) && $catCount === 0) {
             $cats = ['men' => 'Men', 'women' => 'Women', 'accessories' => 'Accessories', 'everyday' => 'Everyday'];
         }
         

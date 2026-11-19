@@ -163,4 +163,3 @@ Route::prefix('api')->group(function () {
 
 // Direct top-level single slug handler (e.g., /shoe-shine-service)
 Route::get('/{slug}', [PageController::class, 'directProduct'])->where('slug', '[a-zA-Z0-9\-_]+')->name('direct.product');
-
